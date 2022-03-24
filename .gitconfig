@@ -1,0 +1,6 @@
+[init]
+	defaultBranch = main
+[alias]
+	staged = diff --staged
+[diff]
+	wsErrorHighlight = all

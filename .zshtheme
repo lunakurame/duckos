@@ -1,0 +1,65 @@
+# vi: syntax=zsh
+
+precmd() {
+	ZSH_PROMPT_PWD="$(pwd)"
+	ZSH_PROMPT_GIT=no
+	unset ZSH_PROMPT_GIT_BRANCH
+	git branch --show-current 2>/dev/null 1>&2
+	if [ "$?" -eq 0 ]; then
+		ZSH_PROMPT_GIT=yes
+		ZSH_PROMPT_GIT_BRANCH="$(git branch --show-current 2>/dev/null)"
+	fi
+}
+
+print_machine_and_user() {
+	local color=cyan
+	local user=": $USER"
+	if [ "$USER" = root ]; then
+		color=red
+		user=
+	elif [ "$USER" = sai ] || [ "$USER" = luna ]; then
+		user=
+	fi
+	printf "%s" "%F{$color}$HOST$user"
+}
+
+print_location() {
+	if [[ "$ZSH_PROMPT_PWD" =~ "$HOME/Downloads/(projects|work)/.+" ]]; then
+		local project="$(echo "$ZSH_PROMPT_PWD" | cut -d/ -f6)"
+		local path="$(echo "$ZSH_PROMPT_PWD" | cut -d/ -f7-)"
+		if [ -z "$path" ]; then
+			printf "%s" "%F{blue}$project%F{white}"
+		else
+			printf "%s" "%F{blue}$project%F{white}/$path"
+		fi
+	else
+		printf "%s" "%~"
+	fi
+}
+
+print_git() {
+	if [ "$ZSH_PROMPT_GIT" = "yes" ]; then
+		printf "%s" "%F{blue}$ZSH_PROMPT_GIT_BRANCH%F{cyan}, "
+	fi
+}
+
+PROMPT='\
+%B\
+$(print_machine_and_user)\
+%F{white}\
+ $(print_location)\
+%(!.%F{red} λ .%F{cyan} λ )\
+%f%b\
+'
+
+RPROMPT='\
+%B\
+%F{cyan}\
+$(print_git)\
+%(1j.∴ %j, .)\
+%(0?.%?.%F{red}%?%F{cyan})\
+'
+
+setopt PROMPT_SUBST
+ZLE_RPROMPT_INDENT=0
+precmd_functions+='precmd'
